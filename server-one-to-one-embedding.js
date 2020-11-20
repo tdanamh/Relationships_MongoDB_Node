@@ -42,3 +42,12 @@ createCustomer("Ana", 26, "woman")
       })
     .catch(err => console.log(err));
 ;
+
+const showAllIdentifier = async function() {
+    const identifiers = await Identifier.find()
+        .select("-__v -customer.__v -customer._id");
+  
+    console.log("> All Identifiers\n", identifiers);
+};
+
+showAllIdentifier();
