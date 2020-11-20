@@ -34,8 +34,9 @@ createCustomer("Ana", 26, "woman")
     .then( customer => {
         console.log("Created new Customer \n", customer);
         // Get customer id from MongoDB
-        const customerId = customer._id.toString().substring(0, 10).toUpperCase();
-        return createIdentifier(customerId, customerId);
+        const customerId = customer._id.toString();
+        const cardCode = customerId.substring(0, 10).toUpperCase();
+        return createIdentifier(cardCode, customerId);
     })
     .then(identifier => {
         console.log("Created new Identifier\n", identifier);
