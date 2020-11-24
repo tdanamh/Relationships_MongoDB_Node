@@ -1,0 +1,252 @@
+Mongo
+
+
+BookstoreDb -> DAW project
+mydb -> MERN project
+Relationships -> Relationships node project
+
+
+MongoDB Relationships
+
+Referencing or Embedding for One-to-One Relationships
+	Referenced Data Model
+	- have to use an additional function called populate() after find();
+	
+	Embedded Data Model
+	- only use find() function to get everything
+	- better performance with a single query	
+	- update the embedded data in just one query using Dot Notation
+
+=> Modeling One-to-One relationships with Embedded documents is the better choice.
+
+Q: What if we update one field in a collection? Do we need to update in both collections?
+A: For both ways (referencing or embedding), we only need to update one collection
+
+Model One-to-Many Relationships
+
+A Tutorial has some Images (15 or less)
+A Tutorial has many Comments
+A Category has a lot of Tutorials
+
+With the difference based on the quantity, we can distinguish between three types of One-to-Many relationships:
+
+One-to-Few
+One-to-Many
+One-to-aLot
+
+	- REFERENCE Data Models (NORMALIZATION)
+
+Child Referencing: the parent references its children.
+
+// Tutorial
+{
+  _id: "5db579f5faf1f8434098f7f5"
+  title: "Tutorial #1",
+  author: "bezkoder"
+  comments: [ "5db57a03faf1f8434098f7f8", "5db57a04faf1f8434098f7f9" ],
+}
+
+// Comments
+{
+  _id: "5db57a03faf1f8434098f7f8",
+  username: "jack",
+  text: "This is a great tutorial.",
+  createdAt: 2019-10-27T11:05:39.898Z
+}
+
+{
+  _id: "5db57a04faf1f8434098f7f9",
+  username: "mary",
+  text: "Thank you, it helps me alot.",
+  createdAt: 2019-10-27T11:05:40.710Z
+}
+
+Parent Referencing: each child keeps a reference to the parent element.
+
+// Category
+{
+  _id: "5db66dd1f4892d34f4f4451a",  
+  name: "Node.js",
+  description: "Node.js tutorial",
+}
+
+// Tutorials
+{ _id: "5db66dcdf4892d34f4f44515",
+  title: "Tutorial #1",  
+  author: "bezkoder",
+  category_id: "5db66dd1f4892d34f4f4451a"
+}
+
+{ 
+  _id: "5db66dd3f4892d34f4f4451b",
+  title: "Tutorial #2",
+  author: "bezkoder",
+  category_id: "5db66dd1f4892d34f4f4451a"
+}
+
+
+	- EMBEDDED Data Models (DENORMALIZATION)
+
+Embedding the related documents right into the main document.
+
+// Tutorial
+{
+  _id: "5db579f5faf1f8434098f7f5"
+  title: "Tutorial #1",
+  author: "bezkoder"
+  comments:
+	[ 
+		{
+		...
+		},
+		{
+		...
+		}
+	]
+}
+
+The app will need fewer queries to DB which increases performance.
+
+
+When to use References or Embedding for One-to-Many Relationships
+
+	It depends on:
+- the types of relationships that exists between collections
+- data access patterns
+- data cohesion
+
+	Types of Relationships
+
+- one-to-few relationship -> embed the related documents into the parent documents.
+
+- one-to-many relationship -> either embed or reference according to the other two criteria.
+
+- one-to-aLot relationship -> use data references 
+
+
+	Data access patterns
+
+Consider how often data is read and written along with read/write ratio.
+
+	- more reading than writing ->  embed the data
+
+The reason is that by embedding we only need one trip to the database per query while for referencing we need two trips. In each query, we save one trip to the database, it makes the entire process way more effective.
+
+For example, a blog Post has about 20-30 Images would actually be a good candidate for embedding because once these Images are saved to the database they are not really updated anymore.
+
+	- more writing than reading -> reference the data
+
+The database engine does more work to update and embed a document than a standalone document
+	
+	
+	Data cohesion
+
+A measure for how much the data is related.
+
+If two collections really intrinsically belong together then they should probably be embedded into one another.
+
+All Tutorials can have many Images, every Image intrinsically belongs to a Tutorial. So Images should be embedded into the Tutorial document.
+
+If we frequently need to query both of collections on their own, we should normalize the data into two separate collections, even if they are closely related.
+
+
+
+Model Many-to-Many Relationships
+
+Embedded
+
+// Tutorial
+{
+  _id: "5db579f5faf1f8434098f123"
+  title: "Tut #1",
+  author: "bezkoder"
+  tags: [
+			  {
+			    name: "tagA",
+			    slug: "tag-a"
+			  },
+			  {
+			    name: "tagB",
+			    slug: "tag-b"
+			  }
+			]
+}
+
+// Tag
+{
+  _id: "5db579f5faf1f84340abf456"
+  name: "tagA",
+  slug: "tag-a"
+  tutorials: [
+			  {
+			    title: "Tut #1",
+			    author: "bezkoder"
+			  },
+			  {
+			    title: "Tut #2",
+			    author: "zkoder"
+			  }
+			]
+}
+
+
+Referenced
+
+This type of referencing is called Child Referencing: the parent (Tag) references its children (Tutorials).
+
+// Tags
+// tagA: [Tut #1, Tut #2]
+{
+  _id: "5db57a03faf1f8434098ab01",
+  name: "tagA",
+  slug: "tag-a",
+  tutorials: [ "5db579f5faf1f8434098f123", "5db579f5faf1f8434098f456" ]
+}
+
+// tagB: [Tut #1]
+{
+  _id: "5db57a04faf1f8434098ab02",
+  name: "tagB",
+  slug: "tag-b",
+  tutorials: [ "5db579f5faf1f8434098f123" ]
+}
+
+
+Parent Referencing
+
+// Tutorial
+// Tut #1: [tagA, tagB]
+{
+  _id: "5db579f5faf1f8434098f123"
+  title: "Tut #1",
+  author: "bezkoder"
+  tags: [ "5db57a03faf1f8434098ab01", "5db57a04faf1f8434098ab02" ],
+}
+
+// Tut #2: [tagA]
+{
+  _id: "5db579f5faf1f8434098f456"
+  title: "Tut #2",
+  author: "zkoder"
+  tags: [ "5db57a03faf1f8434098ab01" ],
+}
+
+
+What we’ve just done is called Two-way Referencing where Tags and Tutorials are connected in both directions:
+– In each Tag, we keep references to all Tutorials that are tagged.
+– In each Tutorial, we also keep references to its Tags.
+
+
+	=> with Many-to-Many relationship, we always use Data References.
+
+
+
+
+
+
+
+
+
+
+
+
